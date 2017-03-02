@@ -1,16 +1,30 @@
-library(magrittr)
-
+#' @title
 #' Population Stability Index
+#' @description
+#' \code{psi} calculates the popolation stability index.
+#' @author Siyuan Yao
+#' @references \href{What is population stability index? - Quora}{https://www.quora.com/What-is-population-stability-index}
 #'
 #' @param original The original set of a measurement, should be a factor or numeric
 #' @param current  The current set of a measurement, should be a factor or numeric
 #' @param cut.points It won't work if original and current are factors, and it cannot be NULL if original and current are numerical. This function use this argument to binning original and current with left-closed right-open interval.
-#' @param simplify If TRUE then just return a number, else return a psi object.
 #'
-#' @return PSI value or a psi object
+#' @return a \code{psi} object
 #'
+#' @details psi measures the stablity of the population. Usually we can believe the population stays the same as the past if psi is less than 0.1, and a significant shift can be recognised if psi is greater than 0.25. The outcome of this function is a numeric, with details stored as attributes. You can use \code{summary} function to see all of the detailed information. Fot the situation where some of the levels has no element in either original population or current population and the psi does not exist for such levels, the empty levels will not be taken into account and a warning will inform you of this. Again, by using \code{summary} you could know everything inside.
+#'
+#' @examples
+#' data("iris")
+#' train <- sample(nrow(iris), nrow(iris) * .7)
+#' train.species <- iris$Species[train]
+#' test.species <- iris$Species[-train]
+#' p <- psi(train.species, test.species)
+#' p
+#' summary(p)
+#'
+#' @import magrittr
 #' @export
-psi <- function(original, current, cut.points = NULL, simplifiy = FALSE) {
+psi <- function(original, current, cut.points = NULL) {
     # binning numeric
     label.numeric <- function(x, cuts, na.level = NULL) {
         cuts <- sort(cuts)
@@ -42,8 +56,6 @@ psi <- function(original, current, cut.points = NULL, simplifiy = FALSE) {
         factor(y, level.names)
     }
 
-    res <- list()
-    class(res) <- 'psi'
 
     # try to convert original & current to factor
     if (is.numeric(original) & is.numeric(current)) {
@@ -51,8 +63,8 @@ psi <- function(original, current, cut.points = NULL, simplifiy = FALSE) {
             stop('When original and current is numeric, cut.points should not be NULL.')
         }
         na.level <- any(is.na(c(original, current)))
-        res$original.num <- original
-        res$current.num <- current
+        # attr(res, 'original.num') <- original
+        # attr(res, 'current.num') <- current
         original <- label.numeric(original, cut.points, na.level)
         current  <- label.numeric(current, cut.points, na.level)
     }
@@ -64,8 +76,6 @@ psi <- function(original, current, cut.points = NULL, simplifiy = FALSE) {
         stop('original and current do not share the same levels.')
     }
 
-    res$original <- original
-    res$current  <- current
 
     levels.name <- levels(original)
     org.stat.tbl <- tapply(X = original,
@@ -76,7 +86,7 @@ psi <- function(original, current, cut.points = NULL, simplifiy = FALSE) {
     cur.stat.tbl <- tapply(X = current,
                            INDEX = current,
                            FUN = length,
-                           simplify = FALSE)%>%
+                           simplify = TRUE)%>%
         sapply(function(x) ifelse(is.na(x), 0, x))
 
     tbl <- data.frame(Levels = levels.name,
@@ -84,10 +94,10 @@ psi <- function(original, current, cut.points = NULL, simplifiy = FALSE) {
                       CurCnt = cur.stat.tbl,
                       OrgPct = org.stat.tbl / sum(org.stat.tbl),
                       CurPct = cur.stat.tbl / sum(cur.stat.tbl))
-    tbl$Index <- (tbl$CurPct - tbl$OrgCnt) * log(tbl$CurPct / tbl$OrgCnt)
+    tbl$Index <- (tbl$CurPct - tbl$OrgPct) * log(tbl$CurPct / tbl$OrgPct)
 
-    psi <- sum(tbl$Index)
-    res$psi <- psi
+    psi <- sum(tbl$Index[tbl$OrgCnt != 0 & tbl$CurCnt != 0])
+    res <- psi
     tbl <- rbind(tbl, data.frame(Levels = 'Total',
                                  OrgCnt = sum(org.stat.tbl),
                                  CurCnt = sum(cur.stat.tbl),
@@ -100,21 +110,31 @@ psi <- function(original, current, cut.points = NULL, simplifiy = FALSE) {
     tbl$CurPct <- round(tbl$CurPct, 4)
     tbl$Index  <- round(tbl$Index,  4)
 
-    res$tbl <- tbl
-
-    if (simplifiy) {
-        return(res$psi)
-    } else {
-        return(res)
+    attr(res, 'tbl') <- tbl
+    # attr(res, 'original') <- original
+    # attr(res, 'current')  <- current
+    if (any(tbl$OrgCnt == 0 | tbl$CurCnt == 0)) {
+        attr(res, 'Empty Levels') <- tbl$Levels[tbl$OrgCnt == 0 | tbl$CurCnt == 0] %>% as.character()
+        warning('Some of the levels are empty, and PSI may be inaccurate. Please use `summary` to see the details.')
     }
+    class(res) <- 'psi'
+    res
 }
 
-print.psi <- function(X) {
-    cat('PSI is', round(X$psi, 4), '\n')
+
+#' @export
+print.psi <- function(x, ...) {
+    cat('PSI :', round(x, 4), '\n')
+    NextMethod('print')
 }
 
+#' @export
+summary.psi <- function(object, ...) {
+    cat('PSI:', round(object, 4), '\n\n')
+    print(attr(object, 'tbl'))
 
-summary.psi <- function(X) {
-    cat('PSI is', round(X$psi, 4), '\n\n')
-    print(X$tbl)
+    if (!is.null(attr(object, 'Empty Levels'))) {
+        cat('\nEmpty Levels: ', paste0(attr(object, 'Empty Levels'), collapse = ', '), '\n')
+    }
+    NextMethod('summary')
 }

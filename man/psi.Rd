@@ -11,8 +11,30 @@ psi(original, current, cut.points = NULL)
 
 \item{current}{The current set of a measurement, should be a factor or numeric}
 
-\item{cut.points}{It won't work if original and current are factors, and it cannot be NULL if original and current are numerical. This functoin use this argument to binning original and current with left-closed right-open interval.}
+\item{cut.points}{It won't work if original and current are factors, and it cannot be NULL if original and current are numerical. This function use this argument to binning original and current with left-closed right-open interval.}
+}
+\value{
+a \code{psi} object
 }
 \description{
-Population Stability Index
+\code{psi} calculates the popolation stability index.
+}
+\details{
+psi measures the stablity of the population. Usually we can believe the population stays the same as the past if psi is less than 0.1, and a significant shift can be recognised if psi is greater than 0.25. The outcome of this function is a numeric, with details stored as attributes. You can use \code{summary} function to see all of the detailed information. Fot the situation where some of the levels has no element in either original population or current population and the psi does not exist for such levels, the empty levels will not be taken into account and a warning will inform you of this. Again, by using \code{summary} you could know everything inside.
+}
+\examples{
+data("iris")
+train <- sample(nrow(iris), nrow(iris) * .7)
+train.species <- iris$Species[train]
+test.species <- iris$Species[-train]
+p <- psi(train.species, test.species)
+p
+summary(p)
+
+}
+\references{
+\href{What is population stability index? - Quora}{https://www.quora.com/What-is-population-stability-index}
+}
+\author{
+Siyuan Yao
 }
