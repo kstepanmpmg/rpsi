@@ -12,6 +12,13 @@ easy manner.
 This package only contains one function \code{\link{psi}}, which you could
 learn how to use it from the document.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/siyuany/rpsi}
+}
+
+}
 \author{
 \strong{Maintainer}: Siyuan Yao \email{siyuan.yao@gmail.com}
 
