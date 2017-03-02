@@ -7,7 +7,7 @@
 #'
 #' @param original The original set of a measurement, should be a factor or numeric
 #' @param current  The current set of a measurement, should be a factor or numeric
-#' @param cut.points It won't work if original and current are factors, and it cannot be NULL if original and current are numerical. This function use this argument to binning original and current with left-closed right-open interval.
+#' @param cut.points It won't work if original and current are factors, and it cannot be NULL if original and current are numerical. This function uses this argument to bin \code{original} and \code{current} with left-closed right-open intervals.
 #'
 #' @return a \code{psi} object
 #'
@@ -117,7 +117,7 @@ psi <- function(original, current, cut.points = NULL) {
         attr(res, 'Empty Levels') <- tbl$Levels[tbl$OrgCnt == 0 | tbl$CurCnt == 0] %>% as.character()
         warning('Some of the levels are empty, and PSI may be inaccurate. Please use `summary` to see the details.')
     }
-    class(res) <- 'psi'
+    class(res) <- c('psi', 'numeric')
     res
 }
 
