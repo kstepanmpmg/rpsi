@@ -4,7 +4,7 @@ Version: 0.1.3.1
 Authors@R: person("Siyuan", "Yao", email = "siyuan.yao@gmail.com", role = c("aut", "cre"))
 Description: This package allows you to to calculate the population stability index in an easy manner.
 URL: https://github.com/siyuany/rpsi
-Depends: R (>= 3.3.2)
+Depends: R (>= 3.3)
 Imports: magrittr
 License: file LICENSE
 Encoding: UTF-8
