@@ -1,4 +1,4 @@
 library(testthat)
-library(PSI)
+library(rPSI)
 
-test_check("PSI")
+test_check("rPSI")
