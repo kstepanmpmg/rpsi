@@ -125,7 +125,7 @@ psi <- function(original, current, cut.points = NULL) {
 #' @export
 print.psi <- function(x, ...) {
     cat('PSI :', round(x, 4), '\n')
-    NextMethod('print')
+    # NextMethod('print')
 }
 
 #' @export
@@ -136,5 +136,5 @@ summary.psi <- function(object, ...) {
     if (!is.null(attr(object, 'Empty Levels'))) {
         cat('\nEmpty Levels: ', paste0(attr(object, 'Empty Levels'), collapse = ', '), '\n')
     }
-    NextMethod('summary')
+    # NextMethod('summary')
 }
