@@ -73,7 +73,10 @@ psi <- function(original, current, cut.points = NULL) {
         stop('original and current should be numeric or factor simultaneously.')
     }
     if (any(levels(original) != levels(current))) {
-        stop('original and current do not share the same levels.')
+        common_lv <- union(levels(original), levels(current))
+        original <- factor(original, levels = common_lv)
+        current  <- factor(current,  levels = common_lv)
+
     }
 
 
