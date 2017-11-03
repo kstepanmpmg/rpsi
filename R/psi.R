@@ -8,6 +8,7 @@
 #' @param original The original set of a measurement, should be a factor or numeric
 #' @param current  The current set of a measurement, should be a factor or numeric
 #' @param cut.points It won't work if original and current are factors, and it cannot be NULL if original and current are numerical. This function uses this argument to bin \code{original} and \code{current} with left-closed right-open intervals.
+#' @param cut.levels specifies how many levels to split a numeric variable. If \code{cut.points} is provided, this parameter will be ignored. When using this parameter, a numeric variable will be split using \code{cut}.
 #'
 #' @return a \code{psi} object
 #'
@@ -24,7 +25,22 @@
 #'
 #' @import magrittr
 #' @export
-psi <- function(original, current, cut.points = NULL) {
+psi <- function(original,
+                current,
+                cut.points = NULL,
+                cut.levels = ifelse(is.null(cut.points), 5L, NULL)) {
+
+    if (!is.null(cut.points)) {
+        cut.levels <- NULL
+    }
+
+    if (!is.null(cut.levels)) {
+        if (cut.levels < 3) {
+            warning("cut.levels must be an interger greater than 3")
+            cut.levels <- 3L
+        }
+    }
+
     # binning numeric
     label.numeric <- function(x, cuts, na.level = NULL) {
         cuts <- sort(cuts)
@@ -60,7 +76,11 @@ psi <- function(original, current, cut.points = NULL) {
     # try to convert original & current to factor
     if (is.numeric(original) & is.numeric(current)) {
         if (is.null(cut.points)) {
-            stop('When original and current is numeric, cut.points should not be NULL.')
+            cut.points <- unname(quantile(original,
+                                          seq(0, 1, length.out = cut.levels),
+                                          type = 1,
+                                          na.rm = TRUE))
+            cut.points <- cut.points[-c(1, length(cut.points))]
         }
         na.level <- any(is.na(c(original, current)))
         # attr(res, 'original.num') <- original
